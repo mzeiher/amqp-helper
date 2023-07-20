@@ -43,7 +43,11 @@ func TestRPC(t *testing.T) {
 	}
 }
 
-func BenchmarkRPC(b *testing.B) {
+func BenchmarkRPC100(b *testing.B)   { benchmarkRPC(100, b) }
+func BenchmarkRPC1000(b *testing.B)  { benchmarkRPC(1000, b) }
+func BenchmarkRPC10000(b *testing.B) { benchmarkRPC(10000, b) }
+
+func benchmarkRPC(messages int, b *testing.B) {
 	connection, err := dialRabbitMq()
 	if err != nil {
 		b.Fatal(err)
@@ -66,9 +70,11 @@ func BenchmarkRPC(b *testing.B) {
 	defer rpc.Close()
 
 	for i := 0; i < b.N; i++ {
-		_, err = rpc.Invoke(context.Background(), "", queue, []byte("hello world"), amqp091.Table{})
-		if err != nil {
-			b.Fatal(err)
+		for m := 0; m < messages; m++ {
+			_, err = rpc.Invoke(context.Background(), "", queue, []byte("hello world"), amqp091.Table{})
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
 	}
 }
